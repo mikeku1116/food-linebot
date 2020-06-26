@@ -25,7 +25,9 @@ SECRET_KEY = 'r$7i_j#5+9f9sbbzs%(346fx0qr3m2$j5a50*tym2qs=f^-1*j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '允許的網域名稱'
+]
 
 
 # Application definition
@@ -118,3 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+LINE_CHANNEL_ACCESS_TOKEN = 'Messaging API的Channel access token'
+
+LINE_CHANNEL_SECRET = 'Basic settings的Channel Secret'
