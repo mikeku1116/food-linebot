@@ -7,13 +7,12 @@ from linebot import LineBotApi, WebhookParser
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import (
     MessageEvent,
-    TextSendMessage,
-    TemplateSendMessage,
-    ButtonsTemplate,
-    PostbackTemplateAction
+    PostbackEvent,
+    TextSendMessage
 )
 
 from .scraper import IFoodie
+from .messages import AreaMessage, CategoryMessage, PriceMessage
 
 line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
 parser = WebhookParser(settings.LINE_CHANNEL_SECRET)
@@ -38,46 +37,43 @@ def callback(request):
 
                 if event.message.text == "哈囉":
 
-                    message = TemplateSendMessage(
-                        alt_text='Buttons template',
-                        template=ButtonsTemplate(
-                            title='Menu',
-                            text='請選擇地區',
-                            actions=[
-                                PostbackTemplateAction(
-                                    label='台北市',
-                                    text='台北市',
-                                    data='area=台北市'
-                                ),
-                                PostbackTemplateAction(
-                                    label='台中市',
-                                    text='台中市',
-                                    data='area=台中市'
-                                ),
-                                PostbackTemplateAction(
-                                    label='高雄市',
-                                    text='高雄市',
-                                    data='area=高雄市'
-                                )
-                            ]
-                        )
-                    )
-
-                    line_bot_api.reply_message(  # 回復按鈕樣板訊息
+                    line_bot_api.reply_message(  # 回復「選擇地區」按鈕樣板訊息
                         event.reply_token,
-                        message
+                        AreaMessage().content()
                     )
 
-                else:
+            elif isinstance(event, PostbackEvent):  # 如果有回傳值事件
 
-                    # 資料初始化
-                    food = IFoodie(event.message.text, "火鍋", "2")
+                if event.postback.data[0:1] == "A":  # 如果回傳值為「選擇地區」
+
+                    line_bot_api.reply_message(   # 回復「選擇美食類別」按鈕樣板訊息
+                        event.reply_token,
+                        CategoryMessage(event.postback.data[2:]).content()
+                    )
+
+                elif event.postback.data[0:1] == "B":  # 如果回傳值為「選擇美食類別」
+
+                    line_bot_api.reply_message(   # 回復「選擇美食類別」按鈕樣板訊息
+                        event.reply_token,
+                        PriceMessage(event.postback.data[2:]).content()
+                    )
+
+                elif event.postback.data[0:1] == "C":  # 如果回傳值為「選擇消費金額」
+
+                    result = event.postback.data[2:].split('&')  # 回傳值的字串切割
+
+                    food = IFoodie(
+                        result[0],  # 地區
+                        result[1],  # 美食類別
+                        result[2]  # 消費價格
+                    )
 
                     line_bot_api.reply_message(  # 回復訊息文字
                         event.reply_token,
-                        # 爬取該地區正在營業且600元以內的前五名最高人氣火鍋店
+                        # 爬取該地區正在營業，且符合所選擇的美食類別及消費價格的前五大最高人氣餐廳
                         TextSendMessage(text=food.scrape())
                     )
+
         return HttpResponse()
     else:
         return HttpResponseBadRequest()

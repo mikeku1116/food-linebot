@@ -3,19 +3,20 @@ from abc import ABC, abstractmethod
 import requests
 
 
+# 美食抽象類別
 class Food(ABC):
 
     def __init__(self, area, category, price):
         self.area = area  # 地區
-        self.category = category  # 美食分類
-        self.price = price  # 平均消費價格等級
+        self.category = category  # 美食類別
+        self.price = price  # 消費價格
 
     @abstractmethod
     def scrape(self):
         pass
 
 
-# 愛食記
+# 愛食記爬蟲
 class IFoodie(Food):
 
     def scrape(self):
